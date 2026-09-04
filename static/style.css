@@ -1,0 +1,364 @@
+/* ============================================================
+   Simulador de Saturación Hospitalaria
+   Identidad visual: "panel de monitor clínico"
+   - Barra lateral oscura (control/navegación)
+   - Contenido principal en papel claro (formularios y tablas legibles)
+   - Panel de gráfica oscuro tipo monitor de signos vitales,
+     con la ocupación trazada en verde, como un latido.
+   ============================================================ */
+
+:root {
+  --navy-900: #0B1420;
+  --navy-800: #14212F;
+  --navy-700: #1C2F40;
+
+  --paper: #F6F4EF;
+  --card: #FFFFFF;
+  --border: #E4E0D6;
+
+  --ink: #16202B;
+  --muted: #6C7A85;
+  --muted-2: #94A3AD;
+
+  --vital: #2FE0A8;
+  --vital-dim: #1C8F6C;
+  --vital-ink: #06382B;
+
+  --alert: #FF6152;
+  --alert-bg: #FFF0EE;
+  --amber: #FFB238;
+
+  --monitor-bg: #071019;
+  --monitor-grid: #14303A;
+  --monitor-line: #35F2B4;
+
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "Roboto Mono", monospace;
+
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+/* ---------------- Layout: sidebar + contenido ---------------- */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--navy-900);
+  color: #DCE6EC;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px 22px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.brand-mark {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(160deg, var(--vital), var(--vital-dim));
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.brand-mark svg { width: 19px; height: 19px; }
+
+.brand-text .name { font-weight: 700; font-size: 14.5px; line-height: 1.25; color: #FFFFFF; }
+.brand-text .tag { font-size: 11.5px; color: #7C93A3; }
+
+.nav { display: flex; flex-direction: column; gap: 3px; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #AEC0CC;
+  text-decoration: none;
+  transition: background .15s ease, color .15s ease;
+}
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; opacity: .85; }
+.nav-item:hover { background: var(--navy-800); color: #FFFFFF; }
+.nav-item.active {
+  background: rgba(47,224,168,.12);
+  color: var(--vital);
+}
+.nav-item.active svg { opacity: 1; }
+.nav-item.disabled { opacity: .35; pointer-events: none; }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 14px 10px 4px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.sidebar-eq {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: #6E8496;
+  line-height: 1.5;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 40px 44px 60px;
+  max-width: 1180px;
+}
+
+/* ---------------- Encabezado de página ---------------- */
+
+.page-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vital-dim);
+  background: rgba(47,224,168,.10);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+h2.page-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0 0 26px;
+  color: var(--ink);
+}
+
+/* ---------------- Tarjetas y contenedores ---------------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+}
+
+.section-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 26px 0 10px;
+}
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+/* ---------------- Tarjetas de estadística ---------------- */
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card .label {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.stat-card .value {
+  font-family: var(--mono);
+  font-size: 28px; font-weight: 700;
+  color: var(--ink);
+  margin-top: 8px;
+}
+.stat-card.is-alert .value { color: var(--alert); }
+.stat-card.is-alert::before {
+  content: "";
+  position: absolute; top: 14px; right: 16px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--alert);
+  box-shadow: 0 0 0 0 rgba(255,97,82,.55);
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(255,97,82,.55); }
+  70%  { box-shadow: 0 0 0 9px rgba(255,97,82,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,97,82,0); }
+}
+
+/* ---------------- Panel de monitor (gráfica) ---------------- */
+
+.monitor-panel {
+  background: var(--monitor-bg);
+  border-radius: var(--radius);
+  padding: 20px 18px 12px;
+  background-image:
+    linear-gradient(var(--monitor-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--monitor-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.monitor-panel .monitor-heading {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono);
+  font-size: 11.5px; letter-spacing: .04em;
+  color: #6E8496; margin-bottom: 4px;
+}
+.monitor-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--vital);
+  box-shadow: 0 0 6px 1px var(--vital);
+}
+
+/* ---------------- Formularios ---------------- */
+
+label {
+  display: block; font-size: 13px; color: var(--muted);
+  margin-bottom: 6px; margin-top: 16px; font-weight: 500;
+}
+
+input[type=text], input[type=number] {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-size: 14px;
+  font-family: var(--sans);
+  background: var(--card);
+  color: var(--ink);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+input:focus {
+  outline: none;
+  border-color: var(--vital-dim);
+  box-shadow: 0 0 0 3px rgba(47,224,168,.15);
+}
+
+/* ---------------- Botones ---------------- */
+
+button, .btn {
+  border: none;
+  padding: 12px 22px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform .1s ease, box-shadow .15s ease, background .15s ease;
+}
+button.primary, .btn.primary {
+  background: var(--vital); color: var(--vital-ink);
+}
+button.primary:hover, .btn.primary:hover { background: #29CC98; box-shadow: 0 4px 14px rgba(47,224,168,.35); }
+button.secondary, .btn.secondary {
+  background: var(--card); color: var(--ink); border: 1.5px solid var(--border);
+}
+button.secondary:hover { border-color: var(--muted-2); }
+button:active, .btn:active { transform: translateY(1px); }
+
+/* ---------------- Tablas ---------------- */
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  background: var(--paper); text-align: left; padding: 9px 12px;
+  font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+}
+td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-family: var(--mono); }
+td:first-child { font-family: var(--sans); color: var(--muted); }
+
+/* ---------------- Listas de checks ---------------- */
+
+.checklist label {
+  display: flex; align-items: center; gap: 10px; font-size: 14px;
+  color: var(--ink); margin-top: 12px; font-weight: 400;
+}
+.checklist input { width: auto; }
+
+/* ---------------- Recomendación / alertas ---------------- */
+
+.flash {
+  background: var(--alert-bg); border: 1px solid #F3C4BE; color: #B23A2C;
+  padding: 12px 16px; border-radius: 9px; margin-bottom: 18px; font-size: 14px;
+}
+
+.callout {
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-top: 18px;
+  border: 1px solid var(--border);
+}
+.callout.is-success { background: rgba(47,224,168,.08); border-color: rgba(47,224,168,.3); }
+.callout.is-warning { background: var(--alert-bg); border-color: #F3C4BE; }
+.callout .callout-title {
+  font-weight: 700; font-size: 13px; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 7px;
+}
+.callout.is-success .callout-title { color: var(--vital-ink); }
+.callout.is-warning .callout-title { color: #B23A2C; }
+.callout p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink); }
+
+.equation-box {
+  background: var(--navy-900);
+  color: #EAF3F0;
+  font-family: var(--mono);
+  border-radius: var(--radius);
+  padding: 18px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 18px;
+}
+
+.policy-card {
+  margin-top: 22px;
+  background: linear-gradient(180deg, rgba(47,224,168,.06), rgba(47,224,168,0));
+  border: 1.5px dashed rgba(47,224,168,.4);
+}
+
+.muted { color: var(--muted); font-size: 13px; }
+
+.empty-state {
+  text-align: center; padding: 70px 20px; color: var(--muted);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.empty-state svg { opacity: .5; margin-bottom: 4px; }
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 860px) {
+  .app-shell { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 14px 16px; row-gap: 10px; }
+  .brand { border: none; padding: 0; margin: 0 16px 0 0; }
+  .nav { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .sidebar-footer { display: none; }
+  .main { padding: 26px 20px 40px; }
+  .grid, .grid-3 { grid-template-columns: 1fr; }
+}

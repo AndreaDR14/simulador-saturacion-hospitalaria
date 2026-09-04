@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-kicker">Paso 1-2 · Variables de estado y de flujo</div>
+<h2 class="page-title">Configurar parámetros del modelo</h2>
+
+<form method="post" action="{{ url_for('simular') }}">
+  <div class="grid">
+    <div>
+      <label>Nombre del escenario</label>
+      <input type="text" name="nombre" value="Escenario {{ siguiente_num }}">
+
+      <label>Ocupación inicial · H(0) (camas)</label>
+      <input type="number" step="0.1" name="ocupacion_inicial" value="120" required>
+
+      <label>Tasa de admisiones · A (pacientes/día)</label>
+      <input type="number" step="0.1" name="tasa_admisiones" value="22" required>
+
+      <label>Estancia promedio · T (días)</label>
+      <input type="number" step="0.1" name="estancia_promedio" value="8" required>
+    </div>
+    <div>
+      <label>Capacidad actual (camas)</label>
+      <input type="number" step="1" name="capacidad_actual" value="141" required>
+
+      <label>Capacidad futura (camas)</label>
+      <input type="number" step="1" name="capacidad_futura" value="205" required>
+
+      <label>Días a simular</label>
+      <input type="number" step="1" name="dias" value="30" required>
+
+      <label>Variabilidad de admisiones (±)</label>
+      <input type="number" step="1" name="variabilidad" value="5" required>
+
+      <label>Semilla aleatoria (opcional, para reproducir resultados)</label>
+      <input type="number" step="1" name="semilla" placeholder="ej. 42">
+    </div>
+  </div>
+
+  <div class="card policy-card">
+    <div class="section-title" style="margin-top:0;">Solución · política de derivación (opcional)</div>
+    <label class="checklist-inline" style="display:flex; align-items:center; gap:10px; margin-top:4px; font-size:14px; color:var(--ink); font-weight:400;">
+      <input type="checkbox" name="politica_activa" style="width:auto;">
+      Activar política de derivación cuando la ocupación llegue a un umbral de la capacidad actual
+    </label>
+    <label>Umbral (% de la capacidad actual)</label>
+    <input type="number" step="1" name="umbral_politica" value="90" style="max-width:180px;">
+    <p class="muted" style="margin-top:10px;">
+      Al llegar a ese porcentaje, el hospital solo admite lo necesario para reponer las altas del día
+      (el resto de la demanda se deriva a otra institución), evitando que la ocupación siga creciendo.
+    </p>
+  </div>
+
+  <div class="equation-box">H(t+1) = H(t) + A &minus; H(t) / T</div>
+
+  <div style="margin-top:24px;">
+    <button type="submit" class="primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+      Ejecutar simulación
+    </button>
+  </div>
+</form>
+{% endblock %}

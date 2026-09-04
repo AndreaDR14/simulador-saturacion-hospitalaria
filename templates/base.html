@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador de Saturación Hospitalaria</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='chart.umd.min.js') }}"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#06382B" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12h4l2-7 4 14 2-7h6"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="name">Simulador</div>
+          <div class="tag">Saturación Hospitalaria</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="{{ url_for('configurar') }}" class="nav-item {{ 'active' if active=='configurar' else '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2.2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="2.2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="11" cy="18" r="2.2"/></svg>
+          Configurar
+        </a>
+        <a href="{{ url_for('resultados', escenario_id=ultimo_id) if ultimo_id else '#' }}" class="nav-item {{ 'active' if active=='resultados' else '' }} {{ 'disabled' if not ultimo_id else '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>
+          Resultados
+        </a>
+        <a href="{{ url_for('comparar') }}" class="nav-item {{ 'active' if active=='comparar' else '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
+          Comparar
+        </a>
+        <a href="{{ url_for('exportar', escenario_id=ultimo_id) if ultimo_id else '#' }}" class="nav-item {{ 'active' if active=='exportar' else '' }} {{ 'disabled' if not ultimo_id else '' }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
+          Exportar
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-eq">H(t+1) = H(t) + A − H(t)/T</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

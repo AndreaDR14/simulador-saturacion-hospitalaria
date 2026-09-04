@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+  <div>
+    <div class="page-kicker">Paso 4 · Solución mediante simulación</div>
+    <h2 class="page-title" style="margin-bottom:6px;">{{ escenario.nombre }}</h2>
+    <p class="muted" style="margin-top:0;">Capacidad de equilibrio (A × T): <strong style="color:var(--ink); font-family:var(--mono);">{{ capacidad_minima }} camas</strong></p>
+  </div>
+  <a class="btn secondary" href="{{ url_for('exportar', escenario_id=escenario.id) }}">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
+    Exportar reporte
+  </a>
+</div>
+
+<div class="grid-3" style="margin-top:18px;">
+  <div class="stat-card {{ 'is-alert' if resultado.dia_saturacion else '' }}">
+    <div class="label">Día de saturación</div>
+    <div class="value">{{ 'Día ' + resultado.dia_saturacion|string if resultado.dia_saturacion else 'No se satura' }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Ocupación final (día {{ escenario.dias }})</div>
+    <div class="value">{{ resultado.ocupacion_final }} camas</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Capacidad futura (2027)</div>
+    <div class="value">{{ escenario.capacidad_futura|int }} camas</div>
+  </div>
+</div>
+
+{% if recomendacion %}
+<div class="callout {{ 'is-success' if (escenario.politica_activa and not resultado.dia_saturacion) else 'is-warning' }}">
+  <div class="callout-title">
+    {% if escenario.politica_activa and not resultado.dia_saturacion %}
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Solución aplicada
+    {% else %}
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      Recomendación
+    {% endif %}
+  </div>
+  <p>{{ recomendacion }}</p>
+</div>
+{% endif %}
+
+<div class="section-title">Ocupación proyectada H(t)</div>
+<div class="monitor-panel">
+  <div class="monitor-heading"><span class="monitor-dot"></span> TRAZADO · H(t) EN EL TIEMPO</div>
+  <canvas id="chart" height="330"></canvas>
+</div>
+
+<div class="section-title">Tabla de resultados</div>
+<div class="card" style="max-height:320px; overflow:auto; padding:0;">
+  <table>
+    <thead><tr><th>Día</th><th>H(t) — camas ocupadas</th></tr></thead>
+    <tbody>
+      {% for valor in ocupacion_por_dia %}
+      <tr><td>{{ loop.index0 }}</td><td>{{ valor }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+const dias = {{ dias_labels|tojson }};
+const ocupacion = {{ ocupacion_por_dia|tojson }};
+const ocupacionSinPolitica = {{ (ocupacion_sin_politica or [])|tojson }};
+const capacidadActual = {{ escenario.capacidad_actual }};
+const capacidadFutura = {{ escenario.capacidad_futura }};
+
+const datasets = [
+  { label: '{{ "Ocupación H(t) — con política" if escenario.politica_activa else "Ocupación proyectada H(t)" }}', data: ocupacion, borderColor: '#35F2B4', backgroundColor: '#35F2B4', tension: 0.3, pointRadius: 0, borderWidth: 2.6 },
+];
+if (ocupacionSinPolitica.length) {
+  datasets.push({ label: 'Ocupación sin política (línea base)', data: ocupacionSinPolitica, borderColor: '#FFB238', backgroundColor: '#FFB238', tension: 0.3, pointRadius: 0, borderWidth: 2, borderDash: [3,3] });
+}
+datasets.push({ label: 'Capacidad actual', data: dias.map(() => capacidadActual), borderColor: '#FF6152', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5 });
+datasets.push({ label: 'Capacidad futura 2027', data: dias.map(() => capacidadFutura), borderColor: '#5B7C89', borderDash: [2,3], pointRadius: 0, borderWidth: 1.5 });
+
+new Chart(document.getElementById('chart'), {
+  type: 'line',
+  data: { labels: dias, datasets: datasets },
+  options: {
+    responsive: true,
+    scales: {
+      x: {
+        title: { display: true, text: 'Día de simulación', color: '#8FA3B0' },
+        ticks: { color: '#6E8496' },
+        grid: { color: 'rgba(255,255,255,0.06)' }
+      },
+      y: {
+        title: { display: true, text: 'Camas ocupadas', color: '#8FA3B0' },
+        ticks: { color: '#6E8496' },
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        beginAtZero: true
+      }
+    },
+    plugins: {
+      legend: { labels: { color: '#C8D6DC', font: { size: 11.5 }, boxWidth: 20, usePointStyle: false } }
+    }
+  }
+});
+</script>
+{% endblock %}

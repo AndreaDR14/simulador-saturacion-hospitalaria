@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-kicker">Discusión · Sensibilidad del modelo</div>
+<h2 class="page-title">Comparar escenarios</h2>
+
+{% if not escenarios %}
+  <div class="card empty-state">
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
+    <div>Aún no hay escenarios guardados. Ejecuten una simulación desde <a href="{{ url_for('configurar') }}" style="color:var(--vital-dim); font-weight:600;">Configurar</a> para empezar a compararlos.</div>
+  </div>
+{% else %}
+<form method="post" action="{{ url_for('comparar') }}">
+  <div class="grid" style="grid-template-columns: 280px 1fr; align-items:start;">
+    <div class="card checklist">
+      <div class="section-title" style="margin-top:0;">Escenarios</div>
+      {% for e in escenarios %}
+      <label>
+        <input type="checkbox" name="ids" value="{{ e.id }}" {% if e.id in seleccionados %}checked{% endif %}>
+        {{ e.nombre }} <span class="muted">({{ 'no se satura' if not e.dia_saturacion else 'sat. día ' + e.dia_saturacion|string }}{{ ' · con política' if e.politica_activa else '' }})</span>
+      </label>
+      {% endfor %}
+      <div style="margin-top:18px;">
+        <button type="submit" class="primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
+          Comparar
+        </button>
+      </div>
+    </div>
+
+    <div>
+      {% if datasets %}
+      <div class="monitor-panel">
+        <div class="monitor-heading"><span class="monitor-dot"></span> TRAZADO COMPARATIVO</div>
+        <canvas id="chart" height="330"></canvas>
+      </div>
+
+      <div class="section-title">Resumen comparativo</div>
+      <div class="card" style="padding:0;">
+        <table>
+          <thead><tr><th>Escenario</th><th>Día de saturación</th><th>Ocupación final</th></tr></thead>
+          <tbody>
+            {% for r in resumen %}
+            <tr>
+              <td style="font-family:var(--sans);">{{ r.nombre }}</td>
+              <td>{{ 'Día ' + r.dia_saturacion|string if r.dia_saturacion else 'No se satura' }}</td>
+              <td>{{ r.ocupacion_final }} camas</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card empty-state">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <div>Seleccionen uno o más escenarios y presionen "Comparar".</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{% if datasets %}
+<script>
+const labels = {{ labels|tojson }};
+const datasets = {{ datasets|tojson }};
+const colores = ['#35F2B4', '#FFB238', '#FF6152', '#7BB7FF', '#C58CFF'];
+
+new Chart(document.getElementById('chart'), {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: datasets.map((d, i) => ({
+      label: d.nombre, data: d.ocupacion, borderColor: colores[i % colores.length],
+      tension: 0.3, pointRadius: 0, borderWidth: 2.4
+    }))
+  },
+  options: {
+    responsive: true,
+    scales: {
+      x: {
+        title: { display: true, text: 'Día de simulación', color: '#8FA3B0' },
+        ticks: { color: '#6E8496' },
+        grid: { color: 'rgba(255,255,255,0.06)' }
+      },
+      y: {
+        title: { display: true, text: 'Camas ocupadas', color: '#8FA3B0' },
+        ticks: { color: '#6E8496' },
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        beginAtZero: true
+      }
+    },
+    plugins: {
+      legend: { labels: { color: '#C8D6DC', font: { size: 11.5 } } }
+    }
+  }
+});
+</script>
+{% endif %}
+{% endif %}
+{% endblock %}
